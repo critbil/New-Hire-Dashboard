@@ -2,12 +2,11 @@ import streamlit as st
 import pandas as pd
 import random
 
-st.set_page_config(page_title="Orderfiller Performance Runway", layout="wide")
+st.set_page_config(page_title="Orderfiller Tracking Master Dashboard", layout="wide")
 
 is_shared_view = st.query_params.get("mode") == "shared"
 
 # --- SYSTEM DATA VAULT ---
-# Cleaned up and verified: Tyler and Chris are correctly on Shift 1 with ~92 trips completed by Week 3
 if "roster_data" not in st.session_state:
     st.session_state.roster_data = [
         # --- Shift 1 (Mon-Thu Day | 4 Days) ---
@@ -35,7 +34,7 @@ if is_shared_view:
     st.title("📋 Warehouse Performance Matrix Feed (View-Only)")
 else:
     st.title("🚀 Warehouse Roster Weekly Forecasting Dashboard")
-st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Baseline: 8 Trips Per Shift standard")
+st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Veteran Standard (100% Performance) = 8 Trips/Shift")
 
 st.markdown("---")
 
@@ -51,7 +50,6 @@ with col_shift:
         "Shift 5 (Fri-Sun | Night Block)"
     ]
     selected_display = st.selectbox("Choose Target Team:", shift_options, index=0)
-    # FIXED: Clean slice ensuring string perfectly matches "Shift 1", "Shift 2", etc.
     selected_shift = selected_display.split(" (")[0]
 
 with col_days:
@@ -84,21 +82,23 @@ def get_daily_forecast(associate, day):
     daily_variance = random.randint(-4, 4)
     final_perf = round(base + daily_variance, 1)
     
-    # Identify Milestone Target Based on Lifecycle Checklist
-    if trips < 700:
-        target_expectation = 40.0
-    elif 700 <= trips < 1000:
-        target_expectation = 80.0
+    # Identify Milestone Target Expectations
+    if tenure_num > 2:
+        if trips < 700: target_expectation = 40.0
+        elif 700 <= trips < 1000: target_expectation = 80.0
+        else: target_expectation = 100.0
     else:
-        target_expectation = 100.0
+        if trips < 700: target_expectation = 40.0
+        elif 700 <= trips < 1000: target_expectation = 80.0
+        else: target_expectation = 100.0
         
     deficit = target_expectation - final_perf
     
-    # FIXED REALISTIC MATHEMATICAL FORECAST: 
-    # Regardless of speed deficits, an associate works a 9-hr block executing an average standard layout volume of 8 trips/shift.
-    trips_per_day = 8
+    # TRUE VELOCITY PROJECTIONS MATH:
+    # 8 trips a day requires a 100% veteran standard. Output scales exactly down/up based on performance percentage.
+    trips_per_day = round(8 * (final_perf / 100.0), 1)
     weekly_multiplier = 4 if shift in mon_thu_shifts else 3
-    projected_weekly_trips = trips_per_day * weekly_multiplier
+    projected_weekly_trips = round(trips_per_day * weekly_multiplier, 1)
     
     if final_perf >= 140.0:
         return f"{final_perf}% 🔥🔥🔥 anisotropy", "elite", trips_per_day, projected_weekly_trips
@@ -109,7 +109,7 @@ def get_daily_forecast(associate, day):
     else:
         return f"{final_perf}%", "meeting", trips_per_day, projected_weekly_trips
 
-# Assemble matrix data rows
+# Assemble data structure rows
 matrix_rows = []
 for a in st.session_state.roster_data:
     if a["shift"] == selected_shift:
@@ -123,8 +123,8 @@ for a in st.session_state.roster_data:
             "Assigned Shift": a["shift"],
             "Tenure Stage": a["tenure"],
             "Current Career Trips": a["trips"],
-            "Daily Volume Est.": daily_trips_str,
-            "Projected Weekly Volume": weekly_trips_str,
+            "Velocity Daily Volume": daily_trips_str,
+            "Velocity Weekly Forecast": weekly_trips_str,
             f"Expected {selected_day} Performance": expected_metric,
             "status_tag": status_tag
         })
@@ -136,23 +136,24 @@ if matrix_rows:
     display_df = pd.DataFrame(matrix_rows).drop(columns=["status_tag"])
     st.dataframe(display_df, use_container_width=True, hide_index=True)
     
-    st.markdown("#### 📋 Coaching & Performance Threshold Highlights")
+    st.markdown("#### 📋 Coaching & Performance Highlights")
     for row in matrix_rows:
         name = row["Associate Name"]
         perf_str = row[f"Expected {selected_day} Performance"]
         tag = row["status_tag"]
         current_trips = row["Current Career Trips"]
-        week_forecast = row["Projected Weekly Volume"]
+        week_forecast = row["Velocity Weekly Forecast"]
+        daily_volume = row["Velocity Daily Volume"]
         
         if tag == "off":
             st.write(f"💤 **{name}** is scheduled off on {selected_day}.")
         elif tag == "elite":
-            st.success(f"🏆 **{name}** (Total: {current_trips}) is pulling an elite **{perf_str}** and is on track to complete **{week_forecast}** for the week!")
+            st.success(f"🏆 **{name}** (Total: {current_trips}) is picking at a legendary speed of **{perf_str}**! Velocity calculations confirm an increased capacity of **{daily_volume}**, trending toward **{week_forecast}**.")
         elif tag == "meeting":
-            st.success(f"🟢 **{name}** (Total: {current_trips}) is **MEETING TARGET** at **{perf_str}** and is trending toward **{week_forecast}** by Friday!")
+            st.success(f"🟢 **{name}** (Total: {current_trips}) is **MEETING TARGET OR ABOVE** at **{perf_str}**. Operating at an expected volume of **{daily_volume}**, pacing toward **{week_forecast}** for the week.")
         elif tag == "caution":
-            st.warning(f"⚠️ **{name}** (Total: {current_trips}) is running a **CAUTION** tier pace of **{perf_str}**. Projected week total: **{week_forecast}**.")
+            st.warning(f"⚠️ **{name}** (Total: {current_trips}) is tracking at a lower pace of **{perf_str}**. Speed constraints reduce their daily capacity down to **{daily_volume}**, capping their weekly outlook at **{week_forecast}**.")
         elif tag == "warning":
-            st.error(f"🚨 **{name}** (Total: {current_trips}) is flagged with a **WARNING** pace of **{perf_str}**. Projected week total drops to **{week_forecast}**!")
+            st.error(f"🚨 **{name}** (Total: {current_trips}) is flagged with an active **WARNING** pace of **{perf_str}**. Extended trip cycle times severely reduce floor output down to **{daily_volume}**, dragging their weekly projection to just **{week_forecast}**!")
 else:
     st.info(f"No active associates currently tracking under {selected_shift}.")
