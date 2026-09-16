@@ -21,12 +21,12 @@ if "roster_data" not in st.session_state:
         {"id": 7, "name": "Dominic V. (Outlier - Elite High)", "shift": "Shift 2", "tenure": "Week 18", "trips": 745, "base_avg": 142.0}, # Example/demo value
         
         # --- Shift 4 (Fri-Sun Day | 3 Days) ---
-        {"id": 8, "name": "Amara T.", "shift": "Shift 4", "tenure": "Week 16", "trips": 712, "base_avg": 80.0}, # Example/demo value
-        {"id": 9, "name": "Gavin J. (Week 5 Trailing)", "shift": "Shift 4", "tenure": "Week 5", "trips": 140, "base_avg": 40.0}, # Example/demo value
+        {"id": 8, "name": "Amara T.", "shift": "Shift 3", "tenure": "Week 16", "trips": 712, "base_avg": 80.0}, # Example/demo value
+        {"id": 9, "name": "Gavin J. (Week 5 Trailing)", "shift": "Shift 3", "tenure": "Week 5", "trips": 140, "base_avg": 40.0}, # Example/demo value
         
         # --- Shift 5 (Fri-Sun Night | 3 Days) ---
-        {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 110.0}, # Example/demo value                    
-        {"id": 11, "name": "Malciah X. (Outlier - Elite High)", "shift": "Shift 5", "tenure": "Week 14", "trips": 510, "base_avg": 146.0}  # Example/demo value
+        {"id": 10, "name": "Jordan M.", "shift": "Shift 4", "tenure": "Week 22", "trips": 910, "base_avg": 110.0}, # Example/demo value                    
+        {"id": 11, "name": "Malciah X. (Outlier - Elite High)", "shift": "Shift 4", "tenure": "Week 14", "trips": 510, "base_avg": 146.0}  # Example/demo value
     ]
 
 # TITLES FOR CHARTS AND LAYOUT
