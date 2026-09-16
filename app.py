@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import random
 
-st.set_page_config(page_title="Orderfiller Tracking Master Dashboard", layout="wide")
+st.set_page_config(page_title="New Hire Dashboard", layout="wide")
 
 is_shared_view = st.query_params.get("mode") == "shared"
 
@@ -32,9 +32,9 @@ if "roster_data" not in st.session_state:
 
 # --- APP LAYOUT NAVIGATION ---
 if is_shared_view:
-    st.title("📋 Warehouse Performance Matrix Feed (View-Only)")
+    st.title("📋 New Hire Performance Feed (View-Only)")
 else:
-    st.title("🚀 Warehouse Roster Weekly Forecasting Dashboard")
+    st.title("🚀 New Hire Roster Weekly Forecasting Dashboard")
 st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Safety Rule: Enforced Hard 40% Floor Past Week 2")
 
 st.markdown("---")
