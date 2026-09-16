@@ -31,9 +31,9 @@ if "roster_data" not in st.session_state:
 
 # --- APP LAYOUT NAVIGATION ---
 if is_shared_view:
-    st.title("📋 New Hire Performance (View-Only)")
+    st.title("📋 Warehouse Performance Matrix Feed (View-Only)")
 else:
-    st.title("🚀 New Hire Roster Weekly Forecasting Dashboard")
+    st.title("🚀 Warehouse Roster Weekly Forecasting Dashboard")
 st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Fire Tiering: 100%-130% (🔥) | 130%+ (🔥🔥🔥)")
 
 st.markdown("---")
@@ -139,8 +139,8 @@ for a in st.session_state.roster_data:
             "Assigned Shift": a["shift"],
             "Tenure Stage": a["tenure"],
             "Current Career Trips": a["trips"],
-            "Daily Volume": daily_trips_str,
-            "Weekly Forecast": weekly_trips_str,
+            "Velocity Daily Volume": daily_trips_str,
+            "Velocity Weekly Forecast": weekly_trips_str,
             f"Expected {selected_day} Performance": expected_metric,
             "status_tag": status_tag
         })
