@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import random
 
-st.set_page_config(page_title="Orderfiller Tracking Master Dashboard", layout="wide")
+st.set_page_config(page_title="New Hire Tracking Master Dashboard", layout="wide")
 
 is_shared_view = st.query_params.get("mode") == "shared"
 
@@ -18,22 +18,23 @@ if "roster_data" not in st.session_state:
         # --- Shift 2 (Mon-Thu Night | 4 Days) ---
         {"id": 5, "name": "Devon K.", "shift": "Shift 2", "tenure": "Week 12", "trips": 420, "base_avg": 40.0},
         {"id": 6, "name": "Siddharth P.", "shift": "Shift 2", "tenure": "Week 25", "trips": 992, "base_avg": 80.0},
-        {"id": 7, "name": "Dominic V. (Outlier - Elite High)", "shift": "Shift 2", "tenure": "Week 18", "trips": 745, "base_avg": 142.0}, # Over 130% -> Will get 3 flames
+        {"id": 7, "name": "Dominic V. (Outlier - Elite High)", "shift": "Shift 2", "tenure": "Week 18", "trips": 745, "base_avg": 142.0},
         
         # --- Shift 4 (Fri-Sun Day | 3 Days) ---
         {"id": 8, "name": "Amara T.", "shift": "Shift 4", "tenure": "Week 16", "trips": 712, "base_avg": 80.0},
         {"id": 9, "name": "Gavin J. (Week 5 Trailing)", "shift": "Shift 4", "tenure": "Week 5", "trips": 140, "base_avg": 40.0}, 
+        {"id": 12, "name": "Brandon T. (Outlier - 30% Below)", "shift": "Shift 4", "tenure": "Week 30", "trips": 1050, "base_avg": 70.0}, # ADDED: Week 30 underperformer tracking below 100% veteran standard
         
         # --- Shift 5 (Fri-Sun Night | 3 Days) ---
-        {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 110.0},                     # Between 100%-130% -> Will get 1 flame
-        {"id": 11, "name": "Malik X. (Outlier - Elite High)", "shift": "Shift 5", "tenure": "Week 14", "trips": 510, "base_avg": 146.0}  # Over 130% -> Will get 3 flames
+        {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 110.0},                     
+        {"id": 11, "name": "Malik X. (Outlier - Elite High)", "shift": "Shift 5", "tenure": "Week 14", "trips": 510, "base_avg": 146.0}  
     ]
 
 # --- APP LAYOUT NAVIGATION ---
 if is_shared_view:
-    st.title("📋 Warehouse Performance Matrix Feed (View-Only)")
+    st.title("📋 New Hire Performance Matrix Feed (View-Only)")
 else:
-    st.title("🚀 Warehouse Roster Weekly Forecasting Dashboard")
+    st.title("🚀 New Hire Roster Weekly Forecasting Dashboard")
 st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Fire Tiering: 100%-130% (🔥) | 130%+ (🔥🔥🔥)")
 
 st.markdown("---")
@@ -49,15 +50,13 @@ with col_shift:
         "Shift 4 (Fri-Sun | Day Block)", 
         "Shift 5 (Fri-Sun | Night Block)"
     ]
-    selected_display = st.selectbox("Choose Target Team:", shift_options, index=0)
-    
-    # Clean slice ensuring string perfectly matches "Shift 1", "Shift 2", etc.
+    selected_display = st.selectbox("Choose Target Team:", shift_options, index=2) # Defaulted to index 2 (Shift 4) to verify Brandon instantly
     selected_shift = selected_display.split(" (")[0]
 
 with col_days:
     st.markdown("#### 2. Select Target Schedule Day")
     week_days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-    selected_day = st.segmented_control("Select Day to View Expected Performance Matrix:", week_days, default="Monday")
+    selected_day = st.segmented_control("Select Day to View Expected Performance Matrix:", week_days, default="Friday")
 
 # --- CONFORMING PERFORMANCE MATRICES FORECAST ENGINE ---
 def get_daily_forecast(associate, day):
@@ -98,7 +97,8 @@ def get_daily_forecast(associate, day):
             milestone_perf = 80.0 + (tier_completion_ratio * (100.0 - 80.0))
         else:
             target_expectation = 100.0
-            milestone_perf = max(100.0, base)
+            # For graduated/late tenure, base average anchors expectation
+            milestone_perf = base
 
         final_perf = round(milestone_perf + (day_index * 0.4), 1)
 
@@ -108,12 +108,12 @@ def get_daily_forecast(associate, day):
         
     deficit = target_expectation - final_perf
     
-    # Velocity trip count calculations
+    # Core capacity calculation parameters scaling with performance index
     trips_per_day = round(8 * (final_perf / 100.0), 1)
     weekly_multiplier = 4 if shift in mon_thu_shifts else 3
     projected_weekly_trips = round(trips_per_day * weekly_multiplier, 1)
     
-    # --- UPDATED FIRE SYMBOL ALLOCATION LOGIC ---
+    # Fire Symbol Allocation Logic
     if final_perf >= 130.0:
         return f"{final_perf}% 🔥🔥🔥", "elite_triple", trips_per_day, projected_weekly_trips
     elif 100.0 <= final_perf < 130.0:
@@ -139,14 +139,14 @@ for a in st.session_state.roster_data:
             "Assigned Shift": a["shift"],
             "Tenure Stage": a["tenure"],
             "Current Career Trips": a["trips"],
-            "Velocity Daily Volume": daily_trips_str,
-            "Velocity Weekly Forecast": weekly_trips_str,
+            "Daily Volume": daily_trips_str,        # REMOVED "Velocity" text
+            "Weekly Forecast": weekly_trips_str,    # REMOVED "Velocity" text
             f"Expected {selected_day} Performance": expected_metric,
             "status_tag": status_tag
         })
 
 # --- DATA SUMMARY SCREEN PRESENTATION ---
-st.markdown(f"### 📊 Team Roster: **{selected_shift}** Projections for **{selected_day}**")
+st.markdown(f"### 📊 New Hire Roster: **{selected_shift}** Projections for **{selected_day}**")
 
 if matrix_rows:
     display_df = pd.DataFrame(matrix_rows).drop(columns=["status_tag"])
@@ -158,20 +158,20 @@ if matrix_rows:
         perf_str = row[f"Expected {selected_day} Performance"]
         tag = row["status_tag"]
         current_trips = row["Current Career Trips"]
-        week_forecast = row["Velocity Weekly Forecast"]
-        daily_volume = row["Velocity Daily Volume"]
+        week_forecast = row["Weekly Forecast"]
+        daily_volume = row["Daily Volume"]
         
         if tag == "off":
             st.write(f"💤 **{name}** is scheduled off on {selected_day}.")
         elif tag == "elite_triple":
-            st.success(f"🏆 **{name}** (Total: {current_trips}) is pulling an elite, top-tier performance of **{perf_str}**! Daily output: **{daily_volume}** trips.")
+            st.success(f"🏆 **{name}** (Total: {current_trips}) is pulling an elite, top-tier performance of **{perf_str}**! Daily output: **{daily_volume}**.")
         elif tag == "elite_single":
-            st.success(f"⚡ **{name}** (Total: {current_trips}) is pacing above full veteran standards at **{perf_str}**! Daily output: **{daily_volume}** trips.")
+            st.success(f"⚡ **{name}** (Total: {current_trips}) is pacing above full standard performance limits at **{perf_str}**! Daily output: **{daily_volume}**.")
         elif tag == "meeting":
-            st.success(f"🟢 **{name}** (Total: {current_trips}) is **MEETING TARGET** at **{perf_str}**. Pacing toward **{week_forecast}** for the week.")
+            st.success(f"🟢 **{name}** (Total: {current_trips}) is **MEETING TARGET** at **{perf_str}**. Operating at an expected volume of **{daily_volume}**, pacing toward **{week_forecast}** for the week.")
         elif tag == "caution":
             st.warning(f"⚠️ **{name}** (Total: {current_trips}) is running a **CAUTION** tier pace of **{perf_str}**.")
         elif tag == "warning":
-            st.error(f"🚨 **{name}** (Total: {current_trips}) is flagged with an active **WARNING** pace of **{perf_str}**.")
+            st.error(f"🚨 **{name}** (Total: {current_trips}) is flagged with an active **WARNING** pace of **{perf_str}**. Extended trip cycle times severely reduce floor output down to **{daily_volume}**, dragging their weekly projection to just **{week_forecast}**!")
 else:
     st.info(f"No active associates currently tracking under {selected_shift}.")
