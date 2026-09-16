@@ -164,12 +164,12 @@ if matrix_rows:
         elif tag == "elite_triple":
             st.success(f"🏆 **{name}** (Total: {current_trips}) is pulling an elite performance of **{perf_str}**! Daily output: **{daily_volume}**.")
         elif tag == "elite_single":
-            st.success(f"⚡ **{name}** (Total: {current_trips}) is pacing above veteran standards at **{perf_str}**! Daily output: **{daily_volume}**.")
+            st.success(f"⚡ **{name}** (Total: {current_trips}) is pacing above expected standards at **{perf_str}**! Daily output: **{daily_volume}**.")
         elif tag == "meeting":
             st.success(f"🟢 **{name}** (Total: {current_trips}) is **MEETING TARGET OR ABOVE** at **{perf_str}**. Operating at an expected volume of **{daily_volume}**.")
         elif tag == "caution":
-            st.warning(f"⚠️ **{name}** (Total: {current_trips}) is flagged with a **CAUTION** milestone status at **{perf_str}**. Trailing 5%-9.9% below target.")
+            st.warning(f"⚠️ **{name}** (Total: {current_trips}) is flagged with a **CAUTION** milestone status at **{perf_str}**. Falling 5%-9.9% below target.")
         elif tag == "warning":
-            st.error(f"🚨 **{name}** (Total: {current_trips}) is flagged with an active **WARNING** pace of **{perf_str}**. Trailing 10%+ below target milestone!")
+            st.error(f"🚨 **{name}** (Total: {current_trips}) is flagged with an active **WARNING** pace of **{perf_str}**. Falling 10%+ below target milestone!")
 else:
     st.info(f"No active associates currently tracking under {selected_shift}.")
