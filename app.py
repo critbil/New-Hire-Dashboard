@@ -13,8 +13,8 @@ if "roster_data" not in st.session_state:
         # --- Shift 1 (Mon-Thu Day | 4 Days) ---
         {"id": 1, "name": "Marcus D.", "shift": "Shift 1", "tenure": "Week 2", "trips": 48, "base_avg": 40.0},
         {"id": 2, "name": "Elena R.", "shift": "Shift 1", "tenure": "Week 6", "trips": 185, "base_avg": 40.0},
-        {"id": 3, "name": "Tyler W. (5% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 92, "base_avg": 35.0},     # FIXED: Triggers 5% Caution alert
-        {"id": 4, "name": "Chris B. (10% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 88, "base_avg": 30.0},    # FIXED: Triggers 10% Warning alert
+        {"id": 3, "name": "Tyler W. (5% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 92, "base_avg": 35.0},     
+        {"id": 4, "name": "Chris B. (10% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 88, "base_avg": 30.0},
         
         # --- Shift 2 (Mon-Thu Night | 4 Days) ---
         {"id": 5, "name": "Devon K.", "shift": "Shift 2", "tenure": "Week 12", "trips": 420, "base_avg": 40.0},
