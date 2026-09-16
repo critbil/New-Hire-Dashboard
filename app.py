@@ -7,13 +7,14 @@ st.set_page_config(page_title="Orderfiller Tracking Master Dashboard", layout="w
 is_shared_view = st.query_params.get("mode") == "shared"
 
 # --- SYSTEM DATA VAULT ---
+# Recalibrated to ensure Week 3 associates scale logically with your 8 trips/day baseline
 if "roster_data" not in st.session_state:
     st.session_state.roster_data = [
         # --- Shift 1 (Mon-Thu Day) ---
         {"id": 1, "name": "Marcus D.", "shift": "Shift 1", "tenure": "Week 2", "trips": 48, "base_avg": 44.0},
         {"id": 2, "name": "Elena R.", "shift": "Shift 1", "tenure": "Week 6", "trips": 185, "base_avg": 72.0},
-        {"id": 3, "name": "Tyler W. (Outlier - Severe Low)", "shift": "Shift 1", "tenure": "Week 3", "trips": 32, "base_avg": 9.0}, # Week 3 -> Hard 40% floor applies -> Severe Warn
-        {"id": 4, "name": "Chris B. (Outlier - Mild Low)", "shift": "Shift 1", "tenure": "Week 3", "trips": 40, "base_avg": 29.0},   # Week 3 -> Hard 40% floor applies -> Caution
+        {"id": 3, "name": "Tyler W. (Outlier - Severe Low)", "shift": "Shift 1", "tenure": "Week 3", "trips": 92, "base_avg": 9.0}, # Updated to realistic ~90 trips
+        {"id": 4, "name": "Chris B. (Outlier - Mild Low)", "shift": "Shift 1", "tenure": "Week 3", "trips": 88, "base_avg": 29.0},   # Updated to realistic ~90 trips
         
         # --- Shift 2 (Mon-Thu Night) ---
         {"id": 5, "name": "Devon K.", "shift": "Shift 2", "tenure": "Week 12", "trips": 420, "base_avg": 81.0},
@@ -22,7 +23,7 @@ if "roster_data" not in st.session_state:
         
         # --- Shift 4 (Fri-Sun Day) ---
         {"id": 8, "name": "Amara T.", "shift": "Shift 4", "tenure": "Week 16", "trips": 712, "base_avg": 88.0},
-        {"id": 9, "name": "Gavin J. (Outlier - Severe Low)", "shift": "Shift 4", "tenure": "Week 5", "trips": 41, "base_avg": 22.0},  # Week 5 -> Hard 40% floor applies -> Warn
+        {"id": 9, "name": "Gavin J. (Outlier - Severe Low)", "shift": "Shift 4", "tenure": "Week 5", "trips": 140, "base_avg": 22.0}, # Adjusted for Week 5 timeline
         
         # --- Shift 5 (Fri-Sun Night) ---
         {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 104.0},
@@ -63,7 +64,6 @@ def get_daily_forecast(associate, day):
     base = associate["base_avg"]
     trips = associate["trips"]
     
-    # Parse out week number from string (e.g. "Week 3" -> 3)
     try:
         tenure_num = int(associate["tenure"].replace("Week ", ""))
     except:
@@ -84,7 +84,6 @@ def get_daily_forecast(associate, day):
     final_perf = round(base + daily_variance, 1)
     
     # --- LOCKED MANDATORY PERFORMANCE FLOOR RULE ---
-    # If past week 2, the baseline expectation is immediately a hard 40% floor minimum.
     if tenure_num > 2:
         if trips < 700:
             target_expectation = 40.0
@@ -93,7 +92,6 @@ def get_daily_forecast(associate, day):
         else:
             target_expectation = 100.0
     else:
-        # For Week 1 and Week 2 associates, evaluate normally relative to baseline ramp up parameters
         if trips < 700:
             target_expectation = 40.0
         elif 700 <= trips < 1000:
@@ -103,9 +101,8 @@ def get_daily_forecast(associate, day):
         
     deficit = target_expectation - final_perf
     
-    # Appending Conditional Formatting Strings
     if final_perf >= 140.0:
-        return f"{final_perf}% 🔥🔥🔥 anisotropy", "elite"
+        return f"{final_perf}% 🔥🔥🔥", "elite"
     elif deficit >= 30.0:
         return f"{final_perf}% 🚨 Warning", "warning"
     elif deficit >= 10.0:
@@ -113,7 +110,7 @@ def get_daily_forecast(associate, day):
     else:
         return f"{final_perf}%", "meeting"
 
-# Assemble data structure array for the master table layout
+# Assemble matrix data rows
 matrix_rows = []
 for a in st.session_state.roster_data:
     if a["shift"] == selected_shift:
