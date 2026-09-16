@@ -10,23 +10,23 @@ is_shared_view = st.query_params.get("mode") == "shared"
 if "roster_data" not in st.session_state:
     st.session_state.roster_data = [
         # --- Shift 1 (Mon-Thu Day | 4 Days) ---
-        {"id": 1, "name": "Marcus D.", "shift": "Shift 1", "tenure": "Week 2", "trips": 48, "base_avg": 40.0},
-        {"id": 2, "name": "Elena R.", "shift": "Shift 1", "tenure": "Week 6", "trips": 185, "base_avg": 40.0},
-        {"id": 3, "name": "Tyler W. (5% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 92, "base_avg": 35.0},     
-        {"id": 4, "name": "Chris B. (10% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 88, "base_avg": 30.0},    
+        {"id": 1, "name": "Marcus D.", "shift": "Shift 1", "tenure": "Week 2", "trips": 48, "base_avg": 40.0}, # Example/demo value
+        {"id": 2, "name": "Elena R.", "shift": "Shift 1", "tenure": "Week 6", "trips": 185, "base_avg": 40.0}, # Example/demo value
+        {"id": 3, "name": "Tyler W. (5% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 92, "base_avg": 35.0}, # Example/demo value     
+        {"id": 4, "name": "Chris B. (10% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 88, "base_avg": 30.0}, # Example/demo value   
         
         # --- Shift 2 (Mon-Thu Night | 4 Days) ---
-        {"id": 5, "name": "Devon K.", "shift": "Shift 2", "tenure": "Week 12", "trips": 420, "base_avg": 40.0},
-        {"id": 6, "name": "Sarah P.", "shift": "Shift 2", "tenure": "Week 25", "trips": 992, "base_avg": 80.0},
-        {"id": 7, "name": "Dominic V. (Outlier - Elite High)", "shift": "Shift 2", "tenure": "Week 18", "trips": 745, "base_avg": 142.0},
+        {"id": 5, "name": "Devon K.", "shift": "Shift 2", "tenure": "Week 12", "trips": 420, "base_avg": 40.0}, # Example/demo value
+        {"id": 6, "name": "Sarah P.", "shift": "Shift 2", "tenure": "Week 25", "trips": 992, "base_avg": 80.0}, # Example/demo value
+        {"id": 7, "name": "Dominic V. (Outlier - Elite High)", "shift": "Shift 2", "tenure": "Week 18", "trips": 745, "base_avg": 142.0}, # Example/demo value
         
         # --- Shift 4 (Fri-Sun Day | 3 Days) ---
-        {"id": 8, "name": "Amara T.", "shift": "Shift 4", "tenure": "Week 16", "trips": 712, "base_avg": 80.0},
-        {"id": 9, "name": "Gavin J. (Week 5 Trailing)", "shift": "Shift 4", "tenure": "Week 5", "trips": 140, "base_avg": 40.0}, 
+        {"id": 8, "name": "Amara T.", "shift": "Shift 4", "tenure": "Week 16", "trips": 712, "base_avg": 80.0}, # Example/demo value
+        {"id": 9, "name": "Gavin J. (Week 5 Trailing)", "shift": "Shift 4", "tenure": "Week 5", "trips": 140, "base_avg": 40.0}, # Example/demo value
         
         # --- Shift 5 (Fri-Sun Night | 3 Days) ---
-        {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 110.0},                     
-        {"id": 11, "name": "Malciah X. (Outlier - Elite High)", "shift": "Shift 5", "tenure": "Week 14", "trips": 510, "base_avg": 146.0}  
+        {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 110.0}, # Example/demo value                    
+        {"id": 11, "name": "Malciah X. (Outlier - Elite High)", "shift": "Shift 5", "tenure": "Week 14", "trips": 510, "base_avg": 146.0}  # Example/demo value
     ]
 
 # TITLES FOR CHARTS AND LAYOUT
@@ -46,8 +46,8 @@ with col_shift:
     shift_options = [
         "Shift 1 (Mon-Thu | Day Shift)", 
         "Shift 2 (Mon-Thu | Night Shift)", 
-        "Shift 4 (Fri-Sun | Day Shift)", 
-        "Shift 5 (Fri-Sun | Night Shift)"
+        "Shift 3 (Fri-Sun | Day Shift)", 
+        "Shift 4 (Fri-Sun | Night Shift)"
     ]
     selected_display = st.selectbox("Choose Target Team:", shift_options, index=0)
     # FIXED: Extract clean text string to match data dictionary mapping
@@ -70,7 +70,7 @@ def get_daily_forecast(associate, day):
         tenure_num = 1
     
     mon_thu_shifts = ["Shift 1", "Shift 2"]
-    fri_sun_shifts = ["Shift 4", "Shift 5"]
+    fri_sun_shifts = ["Shift 3", "Shift 4"]
     mon_thu_days = ["Monday", "Tuesday", "Wednesday", "Thursday"]
     fri_sun_days = ["Saturday", "Sunday", "Friday"]
     
