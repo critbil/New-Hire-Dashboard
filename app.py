@@ -81,29 +81,37 @@ def get_daily_forecast(associate, day):
 
     day_index = mon_thu_days.index(day) if shift in mon_thu_shifts else fri_sun_days.index(day)
 
-    # MILESTONE LOGIC AND EXPECTATIONS
+    # 1. EVALUATE TARGET EXPECTATION FIRST
+    if trips < 700:
+        target_expectation = 40.0
+        tier_completion_ratio = trips / 700.0
+        milestone_perf = 40.0 + (tier_completion_ratio * (80.0 - 40.0))
+    elif 700 <= trips < 1000:
+        target_expectation = 80.0
+        tier_trips_earned = trips - 700
+        tier_completion_ratio = tier_trips_earned / 300.0
+        milestone_perf = 80.0 + (tier_completion_ratio * (100.0 - 80.0))
+    else:
+        target_expectation = 100.0
+        milestone_perf = base
+
+    # 2. EVALUATE FINAL PERFORMANCE TRACKING
     if base >= 140.0:
         final_perf = round(base + (day_index * 0.5), 1)
         target_expectation = 100.0
-    elif base in [35.0, 30.0]:
-        # Lock underperformers to true raw scores so they never turn green over the week
+    elif base < target_expectation:
+        # UNIVERSAL FIX: No matter what their base score is, if they are below target,
+        # freeze their score to their true raw baseline so they never scale up or turn green.
         final_perf = base
-        target_expectation = 40.0
     else:
-        if trips < 700:
-            target_expectation = 40.0
-            tier_completion_ratio = trips / 700.0
-            milestone_perf = 40.0 + (tier_completion_ratio * (80.0 - 40.0))
-        elif 700 <= trips < 1000:
-            target_expectation = 80.0
-            tier_trips_earned = trips - 700
-            tier_completion_ratio = tier_trips_earned / 300.0
-            milestone_perf = 80.0 + (tier_completion_ratio * (100.0 - 80.0))
-        else:
-            target_expectation = 100.0
-            milestone_perf = base
-
+        # Meeting or exceeding target allows performance to scale over the week
         final_perf = round(milestone_perf + (day_index * 0.4), 1)
+
+    # Hard Enforced Performance Floor Rule Past Week 2
+    if tenure_num > 2 and final_perf < 40.0:
+        # If they are a verified underperformer, allow their true low score to show
+        if base >= 40.0:
+            final_perf = 40.0
 
     deficit = target_expectation - final_perf
     
