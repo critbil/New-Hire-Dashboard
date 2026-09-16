@@ -120,7 +120,7 @@ def get_daily_forecast(associate, day):
     
     # --- LOCKED IN NEW CAUTION (5%) AND WARNING (10%) THRESHOLD CODES ---
     if final_perf >= 130.0:
-        return f"{final_perf}% 🔥微", "elite_triple", trips_per_day, projected_weekly_trips
+        return f"{final_perf}% 🔥🔥🔥", "elite_triple", trips_per_day, projected_weekly_trips
     elif 100.0 <= final_perf < 130.0:
         return f"{final_perf}% 🔥", "elite_single", trips_per_day, projected_weekly_trips
     elif deficit >= 10.0:
