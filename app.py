@@ -12,8 +12,8 @@ if "roster_data" not in st.session_state:
         # --- Shift 1 (Mon-Thu Day) ---
         {"id": 1, "name": "Marcus D.", "shift": "Shift 1", "tenure": "Week 2", "trips": 48, "base_avg": 44.0},
         {"id": 2, "name": "Elena R.", "shift": "Shift 1", "tenure": "Week 6", "trips": 185, "base_avg": 72.0},
-        {"id": 3, "name": "Tyler W. (Outlier - Severe Low)", "shift": "Shift 1", "tenure": "Week 3", "trips": 32, "base_avg": 9.0},
-        {"id": 4, "name": "Chris B. (Outlier - Mild Low)", "shift": "Shift 1", "tenure": "Week 2", "trips": 40, "base_avg": 29.0},
+        {"id": 3, "name": "Tyler W. (Outlier - Severe Low)", "shift": "Shift 1", "tenure": "Week 3", "trips": 32, "base_avg": 9.0}, # Week 3 -> Hard 40% floor applies -> Severe Warn
+        {"id": 4, "name": "Chris B. (Outlier - Mild Low)", "shift": "Shift 1", "tenure": "Week 3", "trips": 40, "base_avg": 29.0},   # Week 3 -> Hard 40% floor applies -> Caution
         
         # --- Shift 2 (Mon-Thu Night) ---
         {"id": 5, "name": "Devon K.", "shift": "Shift 2", "tenure": "Week 12", "trips": 420, "base_avg": 81.0},
@@ -22,7 +22,7 @@ if "roster_data" not in st.session_state:
         
         # --- Shift 4 (Fri-Sun Day) ---
         {"id": 8, "name": "Amara T.", "shift": "Shift 4", "tenure": "Week 16", "trips": 712, "base_avg": 88.0},
-        {"id": 9, "name": "Gavin J. (Outlier - Severe Low)", "shift": "Shift 4", "tenure": "Week 5", "trips": 41, "base_avg": 22.0},
+        {"id": 9, "name": "Gavin J. (Outlier - Severe Low)", "shift": "Shift 4", "tenure": "Week 5", "trips": 41, "base_avg": 22.0},  # Week 5 -> Hard 40% floor applies -> Warn
         
         # --- Shift 5 (Fri-Sun Night) ---
         {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 104.0},
@@ -34,7 +34,7 @@ if is_shared_view:
     st.title("📋 Warehouse Performance Matrix Feed (View-Only)")
 else:
     st.title("🚀 Warehouse Roster Weekly Forecasting Dashboard")
-st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Production Standard: 5 Cases/Min")
+st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Tenure Constraint: Hard 40% Performance Floor Past Week 2")
 
 st.markdown("---")
 
@@ -63,6 +63,12 @@ def get_daily_forecast(associate, day):
     base = associate["base_avg"]
     trips = associate["trips"]
     
+    # Parse out week number from string (e.g. "Week 3" -> 3)
+    try:
+        tenure_num = int(associate["tenure"].replace("Week ", ""))
+    except:
+        tenure_num = 1
+    
     mon_thu_shifts = ["Shift 1", "Shift 2"]
     fri_sun_shifts = ["Shift 4", "Shift 5"]
     mon_thu_days = ["Monday", "Tuesday", "Wednesday", "Thursday"]
@@ -73,24 +79,33 @@ def get_daily_forecast(associate, day):
     if shift in fri_sun_shifts and day not in fri_sun_days:
         return "Off Shift", "off"
         
-    # Generate stable daily variation based on individual id tokens
     random.seed(associate["id"] + len(day))
     daily_variance = random.randint(-4, 4)
     final_perf = round(base + daily_variance, 1)
     
-    # Identify Active Milestone Targets Based on Lifecycle
-    if trips < 700:
-        target_expectation = 40.0
-    elif 700 <= trips < 1000:
-        target_expectation = 80.0
+    # --- LOCKED MANDATORY PERFORMANCE FLOOR RULE ---
+    # If past week 2, the baseline expectation is immediately a hard 40% floor minimum.
+    if tenure_num > 2:
+        if trips < 700:
+            target_expectation = 40.0
+        elif 700 <= trips < 1000:
+            target_expectation = 80.0
+        else:
+            target_expectation = 100.0
     else:
-        target_expectation = 100.0
+        # For Week 1 and Week 2 associates, evaluate normally relative to baseline ramp up parameters
+        if trips < 700:
+            target_expectation = 40.0
+        elif 700 <= trips < 1000:
+            target_expectation = 80.0
+        else:
+            target_expectation = 100.0
         
     deficit = target_expectation - final_perf
     
     # Appending Conditional Formatting Strings
     if final_perf >= 140.0:
-        return f"{final_perf}% 🔥🔥🔥🔥", "elite"
+        return f"{final_perf}% 🔥🔥🔥 anisotropy", "elite"
     elif deficit >= 30.0:
         return f"{final_perf}% 🚨 Warning", "warning"
     elif deficit >= 10.0:
@@ -117,7 +132,6 @@ for a in st.session_state.roster_data:
 st.markdown(f"### 📊 Team Roster: **{selected_shift}** Projections for **{selected_day}**")
 
 if matrix_rows:
-    # Build clean display table while hiding technical structural columns
     display_df = pd.DataFrame(matrix_rows).drop(columns=["status_tag"])
     st.dataframe(display_df, use_container_width=True, hide_index=True)
     
@@ -135,7 +149,7 @@ if matrix_rows:
         elif tag == "meeting":
             st.success(f"🟢 **{name}** (Trips: {trips}/1000) is **MEETING TARGET OR ABOVE** at **{perf_str}** for their active hours today. Keep it up!")
         elif tag == "caution":
-            st.warning(f"⚠️ **{name}** (Trips: {trips}/1000) is flagged with a **CAUTION** status at **{perf_str}**. Performance is running 10%-29% below milestone expectation.")
+            st.warning(f"⚠️ **{name}** (Trips: {trips}/1000) is flagged with a **CAUTION** status at **{perf_str}**. Performance is running below expectation!")
         elif tag == "warning":
             st.error(f"🚨 **{name}** (Trips: {trips}/1000) is flagged with an active **WARNING** at **{perf_str}**. Performance is dropping 30%+ below their active milestone hurdle!")
 else:
