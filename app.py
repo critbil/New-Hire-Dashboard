@@ -23,7 +23,7 @@ if "roster_data" not in st.session_state:
         # --- Shift 4 (Fri-Sun Day | 3 Days) ---
         {"id": 8, "name": "Amara T.", "shift": "Shift 4", "tenure": "Week 16", "trips": 712, "base_avg": 80.0},
         {"id": 9, "name": "Gavin J. (Week 5 Trailing)", "shift": "Shift 4", "tenure": "Week 5", "trips": 140, "base_avg": 40.0}, 
-        {"id": 12, "name": "Brandon T. (Outlier - 30% Below)", "shift": "Shift 4", "tenure": "Week 30", "trips": 1050, "base_avg": 70.0}, # ADDED: Week 30 underperformer tracking below 100% veteran standard
+        {"id": 12, "name": "Brandon T. (Outlier - 30% Below)", "shift": "Shift 4", "tenure": "Week 30", "trips": 1050, "base_avg": 65.0}, # FIXED: Base average set to guarantee a 30%+ deficit alert
         
         # --- Shift 5 (Fri-Sun Night | 3 Days) ---
         {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 110.0},                     
@@ -97,7 +97,6 @@ def get_daily_forecast(associate, day):
             milestone_perf = 80.0 + (tier_completion_ratio * (100.0 - 80.0))
         else:
             target_expectation = 100.0
-            # For graduated/late tenure, base average anchors expectation
             milestone_perf = base
 
         final_perf = round(milestone_perf + (day_index * 0.4), 1)
@@ -139,8 +138,8 @@ for a in st.session_state.roster_data:
             "Assigned Shift": a["shift"],
             "Tenure Stage": a["tenure"],
             "Current Career Trips": a["trips"],
-            "Daily Volume": daily_trips_str,        # REMOVED "Velocity" text
-            "Weekly Forecast": weekly_trips_str,    # REMOVED "Velocity" text
+            "Daily Volume": daily_trips_str,        
+            "Weekly Forecast": weekly_trips_str,    
             f"Expected {selected_day} Performance": expected_metric,
             "status_tag": status_tag
         })
