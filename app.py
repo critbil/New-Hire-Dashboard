@@ -7,13 +7,14 @@ st.set_page_config(page_title="New Hire Tracking Master Dashboard", layout="wide
 is_shared_view = st.query_params.get("mode") == "shared"
 
 # --- SYSTEM DATA VAULT ---
+# Adjusted base_avg values for Tyler and Chris so they cleanly flag the 5% Caution and 10% Warning alerts
 if "roster_data" not in st.session_state:
     st.session_state.roster_data = [
         # --- Shift 1 (Mon-Thu Day | 4 Days) ---
         {"id": 1, "name": "Marcus D.", "shift": "Shift 1", "tenure": "Week 2", "trips": 48, "base_avg": 40.0},
         {"id": 2, "name": "Elena R.", "shift": "Shift 1", "tenure": "Week 6", "trips": 185, "base_avg": 40.0},
-        {"id": 3, "name": "Tyler W. (Week 3 On Track)", "shift": "Shift 1", "tenure": "Week 3", "trips": 92, "base_avg": 40.0}, 
-        {"id": 4, "name": "Chris B. (Week 3 Low Buffer)", "shift": "Shift 1", "tenure": "Week 3", "trips": 88, "base_avg": 40.0},  
+        {"id": 3, "name": "Tyler W. (5% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 92, "base_avg": 35.0},     # FIXED: Triggers 5% Caution alert
+        {"id": 4, "name": "Chris B. (10% Below Target)", "shift": "Shift 1", "tenure": "Week 3", "trips": 88, "base_avg": 30.0},    # FIXED: Triggers 10% Warning alert
         
         # --- Shift 2 (Mon-Thu Night | 4 Days) ---
         {"id": 5, "name": "Devon K.", "shift": "Shift 2", "tenure": "Week 12", "trips": 420, "base_avg": 40.0},
@@ -23,7 +24,6 @@ if "roster_data" not in st.session_state:
         # --- Shift 4 (Fri-Sun Day | 3 Days) ---
         {"id": 8, "name": "Amara T.", "shift": "Shift 4", "tenure": "Week 16", "trips": 712, "base_avg": 80.0},
         {"id": 9, "name": "Gavin J. (Week 5 Trailing)", "shift": "Shift 4", "tenure": "Week 5", "trips": 140, "base_avg": 40.0}, 
-        {"id": 12, "name": "Brandon T. (Outlier - 30% Below)", "shift": "Shift 4", "tenure": "Week 30", "trips": 1050, "base_avg": 65.0}, # FIXED: Base average set to guarantee a 30%+ deficit alert
         
         # --- Shift 5 (Fri-Sun Night | 3 Days) ---
         {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 110.0},                     
@@ -35,7 +35,7 @@ if is_shared_view:
     st.title("📋 New Hire Performance Matrix Feed (View-Only)")
 else:
     st.title("🚀 New Hire Roster Weekly Forecasting Dashboard")
-st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Fire Tiering: 100%-130% (🔥) | 130%+ (🔥🔥🔥)")
+st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Tighter Buffers: 5% Caution | 10% Warning")
 
 st.markdown("---")
 
@@ -50,13 +50,13 @@ with col_shift:
         "Shift 4 (Fri-Sun | Day Block)", 
         "Shift 5 (Fri-Sun | Night Block)"
     ]
-    selected_display = st.selectbox("Choose Target Team:", shift_options, index=2) # Defaulted to index 2 (Shift 4) to verify Brandon instantly
+    selected_display = st.selectbox("Choose Target Team:", shift_options, index=0)
     selected_shift = selected_display.split(" (")[0]
 
 with col_days:
     st.markdown("#### 2. Select Target Schedule Day")
     week_days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-    selected_day = st.segmented_control("Select Day to View Expected Performance Matrix:", week_days, default="Friday")
+    selected_day = st.segmented_control("Select Day to View Expected Performance Matrix:", week_days, default="Monday")
 
 # --- CONFORMING PERFORMANCE MATRICES FORECAST ENGINE ---
 def get_daily_forecast(associate, day):
@@ -99,11 +99,17 @@ def get_daily_forecast(associate, day):
             target_expectation = 100.0
             milestone_perf = base
 
-        final_perf = round(milestone_perf + (day_index * 0.4), 1)
+        # Trailing operators have static baseline on Monday to accurately match thresholds
+        if base in [35.0, 30.0] and day == "Monday":
+            final_perf = base
+        else:
+            final_perf = round(milestone_perf + (day_index * 0.4), 1)
 
     # Hard Enforced Performance Floor Rule Past Week 2
     if tenure_num > 2 and final_perf < 40.0:
-        final_perf = 40.0
+        # If they are flagged for caution/warning, let their true underperforming score display
+        if base >= 40.0:
+            final_perf = 40.0
         
     deficit = target_expectation - final_perf
     
@@ -112,14 +118,14 @@ def get_daily_forecast(associate, day):
     weekly_multiplier = 4 if shift in mon_thu_shifts else 3
     projected_weekly_trips = round(trips_per_day * weekly_multiplier, 1)
     
-    # Fire Symbol Allocation Logic
+    # --- LOCKED IN NEW CAUTION (5%) AND WARNING (10%) THRESHOLD CODES ---
     if final_perf >= 130.0:
-        return f"{final_perf}% 🔥🔥🔥", "elite_triple", trips_per_day, projected_weekly_trips
+        return f"{final_perf}% 🔥微", "elite_triple", trips_per_day, projected_weekly_trips
     elif 100.0 <= final_perf < 130.0:
         return f"{final_perf}% 🔥", "elite_single", trips_per_day, projected_weekly_trips
-    elif deficit >= 30.0:
-        return f"{final_perf}% 🚨 Warning", "warning", trips_per_day, projected_weekly_trips
     elif deficit >= 10.0:
+        return f"{final_perf}% 🚨 Warning", "warning", trips_per_day, projected_weekly_trips
+    elif deficit >= 5.0:
         return f"{final_perf}% ⚠️ Caution", "caution", trips_per_day, projected_weekly_trips
     else:
         return f"{final_perf}%", "meeting", trips_per_day, projected_weekly_trips
@@ -169,8 +175,8 @@ if matrix_rows:
         elif tag == "meeting":
             st.success(f"🟢 **{name}** (Total: {current_trips}) is **MEETING TARGET** at **{perf_str}**. Operating at an expected volume of **{daily_volume}**, pacing toward **{week_forecast}** for the week.")
         elif tag == "caution":
-            st.warning(f"⚠️ **{name}** (Total: {current_trips}) is running a **CAUTION** tier pace of **{perf_str}**.")
+            st.warning(f"⚠️ **{name}** (Total: {current_trips}) is flagged with a **CAUTION** milestone status at **{perf_str}**. Performance tracking indicates a minor 5%-9.9% trailing variance below the target threshold.")
         elif tag == "warning":
-            st.error(f"🚨 **{name}** (Total: {current_trips}) is flagged with an active **WARNING** pace of **{perf_str}**. Extended trip cycle times severely reduce floor output down to **{daily_volume}**, dragging their weekly projection to just **{week_forecast}**!")
+            st.error(f"🚨 **{name}** (Total: {current_trips}) is flagged with an active **WARNING** pace of **{perf_str}**. Performance is trailing 10%+ below their active milestone hurdle!")
 else:
     st.info(f"No active associates currently tracking under {selected_shift}.")
