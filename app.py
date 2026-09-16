@@ -2,11 +2,11 @@ import streamlit as st
 import pandas as pd
 import random
 
-st.set_page_config(page_title="New Hire Tracking Master Dashboard", layout="wide")
+st.set_page_config(page_title="New Hire Performance Dashboard", layout="wide")
 
 is_shared_view = st.query_params.get("mode") == "shared"
 
-# --- SYSTEM DATA VAULT ---
+# ASSOCIATE DATA
 if "roster_data" not in st.session_state:
     st.session_state.roster_data = [
         # --- Shift 1 (Mon-Thu Day | 4 Days) ---
@@ -17,7 +17,7 @@ if "roster_data" not in st.session_state:
         
         # --- Shift 2 (Mon-Thu Night | 4 Days) ---
         {"id": 5, "name": "Devon K.", "shift": "Shift 2", "tenure": "Week 12", "trips": 420, "base_avg": 40.0},
-        {"id": 6, "name": "Siddharth P.", "shift": "Shift 2", "tenure": "Week 25", "trips": 992, "base_avg": 80.0},
+        {"id": 6, "name": "Sarah P.", "shift": "Shift 2", "tenure": "Week 25", "trips": 992, "base_avg": 80.0},
         {"id": 7, "name": "Dominic V. (Outlier - Elite High)", "shift": "Shift 2", "tenure": "Week 18", "trips": 745, "base_avg": 142.0},
         
         # --- Shift 4 (Fri-Sun Day | 3 Days) ---
@@ -26,10 +26,10 @@ if "roster_data" not in st.session_state:
         
         # --- Shift 5 (Fri-Sun Night | 3 Days) ---
         {"id": 10, "name": "Jordan M.", "shift": "Shift 5", "tenure": "Week 22", "trips": 910, "base_avg": 110.0},                     
-        {"id": 11, "name": "Malik X. (Outlier - Elite High)", "shift": "Shift 5", "tenure": "Week 14", "trips": 510, "base_avg": 146.0}  
+        {"id": 11, "name": "Malciah X. (Outlier - Elite High)", "shift": "Shift 5", "tenure": "Week 14", "trips": 510, "base_avg": 146.0}  
     ]
 
-# --- APP LAYOUT NAVIGATION ---
+# TITLES FOR CHARTS AND LAYOUT
 if is_shared_view:
     st.title("📋 New Hire Performance Matrix Feed (View-Only)")
 else:
@@ -38,26 +38,27 @@ st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Tighter Bu
 
 st.markdown("---")
 
-# --- USER SELECTION CONTROLS ---
+# SHIFT SELECTION DROP DOWN 
 col_shift, col_days = st.columns([1.2, 1.8])
 
 with col_shift:
     st.markdown("#### 1. Select Isolated Shift Group")
     shift_options = [
-        "Shift 1 (Mon-Thu | 4am - 3pm)", 
-        "Shift 2 (Mon-Thu | 3:30pm - 3am)", 
-        "Shift 4 (Fri-Sun | Day Block)", 
-        "Shift 5 (Fri-Sun | Night Block)"
+        "Shift 1 (Mon-Thu | Day Shift)", 
+        "Shift 2 (Mon-Thu | Night Shift)", 
+        "Shift 4 (Fri-Sun | Day Shift)", 
+        "Shift 5 (Fri-Sun | Night Shift)"
     ]
     selected_display = st.selectbox("Choose Target Team:", shift_options, index=0)
-    selected_shift = selected_display.split(" (")
+    # FIXED: Extract clean text string to match data dictionary mapping
+    selected_shift = selected_display.split(" (")[0]
 
 with col_days:
     st.markdown("#### 2. Select Target Schedule Day")
     week_days = ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
     selected_day = st.segmented_control("Select Day to View Expected Performance Matrix:", week_days, default="Monday")
 
-# --- CONFORMING PERFORMANCE MATRICES FORECAST ENGINE ---
+# PERFORMANCE AVERAGES
 def get_daily_forecast(associate, day):
     shift = associate["shift"]
     base = associate["base_avg"]
@@ -80,12 +81,12 @@ def get_daily_forecast(associate, day):
 
     day_index = mon_thu_days.index(day) if shift in mon_thu_shifts else fri_sun_days.index(day)
 
-    # --- MILESTONE-DRIVEN PERFORMANCE TRAJECTORY LOGIC ---
+    # MILESTONE LOGIC AND EXPECTATIONS
     if base >= 140.0:
         final_perf = round(base + (day_index * 0.5), 1)
         target_expectation = 100.0
     elif base in [35.0, 30.0]:
-        # Lock underperformers to their true raw scores so they never scale up or turn green over the week
+        # Lock underperformers to true raw scores so they never turn green over the week
         final_perf = base
         target_expectation = 40.0
     else:
@@ -110,7 +111,7 @@ def get_daily_forecast(associate, day):
     weekly_multiplier = 4 if shift in mon_thu_shifts else 3
     projected_weekly_trips = round(trips_per_day * weekly_multiplier, 1)
     
-    # Corrected formatting allocation based on deficit targets
+    # FUN EASY VISUALS FOR TRAINERS TO SEE
     if final_perf >= 130.0:
         return f"{final_perf}% 🔥🔥🔥", "elite_triple", trips_per_day, projected_weekly_trips
     elif 100.0 <= final_perf < 130.0:
@@ -142,14 +143,14 @@ for a in st.session_state.roster_data:
             "status_tag": status_tag
         })
 
-# --- DATA SUMMARY SCREEN PRESENTATION ---
+# DATA SUMMARY 
 st.markdown(f"### 📊 New Hire Roster: **{selected_shift}** Projections for **{selected_day}**")
 
 if matrix_rows:
     display_df = pd.DataFrame(matrix_rows).drop(columns=["status_tag"])
     st.dataframe(display_df, use_container_width=True, hide_index=True)
     
-    st.markdown("#### 📋 Coaching & Performance Threshold Highlights")
+    st.markdown("#### 📋 Coaching & Performance Highlights")
     for row in matrix_rows:
         name = row["Associate Name"]
         perf_str = row[f"Expected {selected_day} Performance"]
