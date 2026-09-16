@@ -153,7 +153,7 @@ if matrix_rows:
     display_df = pd.DataFrame(matrix_rows).drop(columns=["status_tag"])
     st.dataframe(display_df, use_container_width=True, hide_index=True)
     
-    st.markdown("#### 📋 Coaching & Performance Highlights")
+    st.markdown("#### 📋 Coaching & Performance Threshold Highlights")
     for row in matrix_rows:
         name = row["Associate Name"]
         perf_str = row[f"Expected {selected_day} Performance"]
