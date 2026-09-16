@@ -101,7 +101,7 @@ def get_daily_forecast(associate, day):
     projected_weekly_trips = round(trips_per_day * weekly_multiplier, 1)
     
     if final_perf >= 140.0:
-        return f"{final_perf}% 🔥🔥🔥 anisotropy", "elite", trips_per_day, projected_weekly_trips
+        return f"{final_perf}% 🔥🔥🔥", "elite", trips_per_day, projected_weekly_trips
     elif deficit >= 30.0:
         return f"{final_perf}% 🚨 Warning", "warning", trips_per_day, projected_weekly_trips
     elif deficit >= 10.0:
