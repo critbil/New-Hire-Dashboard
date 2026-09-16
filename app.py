@@ -31,9 +31,9 @@ if "roster_data" not in st.session_state:
 
 # TITLES FOR CHARTS AND LAYOUT
 if is_shared_view:
-    st.title("📋 New Hire Performance Matrix Feed (View-Only)")
+    st.title("📋 New Hire Performance Matrix (View-Only)")
 else:
-    st.title("🚀 New Hire Roster Weekly Forecasting Dashboard")
+    st.title("🚀 New Hire Roster Weekly Dashboard")
 st.caption("Active Configurations: 9-Hour Workday (478 Active Mins) | Tighter Buffers: 5% Caution | 10% Warning")
 
 st.markdown("---")
